@@ -7,25 +7,37 @@ let domain;
 let inputEmail = process.argv[2]
 
 if (process.argv[2] !== null) {
-    domain = getURL(inputEmail);
+    domain = getDomain(inputEmail);
 } else {
     console.log('Please enter a valid email address');
     process.exit();
 }
 
-function getURL(email) {
+function getDomain(email) {
     domain = email.split('@')[1];
     return domain;
+}
+
+const createURL = domain => {
+    const url = `https://www.${domain}`;
+    console.log(url)
+    return url;
 }
 
 // axios makes http request on url to obtain raw url data
 
 const urlRequest = async (domain) => {
+    const url = createURL(domain)
   const {data} = await axios.get(url);
-  console.log(data)
+  return data;
 }
 
-urlRequest(domain)
+const body = urlRequest(domain);
+body.then(() => {
+    console.log(body)
+})
+
+
 
 
 
