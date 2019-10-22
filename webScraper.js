@@ -4,6 +4,7 @@ var Knwl = require("knwl.js");
 var knwlInstance = new Knwl("english");
 
 knwlInstance.register("phones", require("./utils/phones"));
+knwlInstance.register("places", require("./utils/places"));
 
 // takes domain from email address provided in CL
 
@@ -53,11 +54,9 @@ const getHyperLinks = $ => {
 // function for extracting all telephone numbers from web page
 
 const getTelephoneNumbers = async links => {
-  const telephoneNumbers = [];
+  let telephoneNumbers = [];
 
-  const nums = await knwlInstance.get("phones");
-
-  console.log(nums);
+  telephoneNumbers = await knwlInstance.get("phones");
 
   links.forEach(link => {
     if (link && /tel:/.test(link)) {
@@ -115,7 +114,9 @@ const getData = async domain => {
 
   const emailAddresses = await getEmailAddresses(hyperlinks);
 
-  console.log(telephoneNumbers, emailAddresses)
+  const places = await knwlInstance.get("places");
+
+  console.log(telephoneNumbers);
 };
 
 if (process.argv[2] !== null) {
@@ -129,4 +130,3 @@ if (process.argv[2] !== null) {
 
   process.exit();
 }
-
