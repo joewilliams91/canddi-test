@@ -1,4 +1,4 @@
-const axios = require('axios')
+const axios = require("axios");
 
 function Places(knwlInstance) {
   this.languages = {
@@ -31,34 +31,8 @@ function Places(knwlInstance) {
       }
     }
 
-    const getCoordinates = postcode => {
-      
-     
-        axios.get(
-          `https://maps.googleapis.com/maps/api/geocode/json?address=${postcode}&key=AIzaSyA0NPRN93V8yRyOeg4IPwPuy-qQAXDBf2Q`
-        )
-          .then(response => console.log(response.data.results[0].address_components))
-          // .then(responseJson => {
-          //  console.log(responseJson)
-          // })
-      //     .then(coordinates => {
-      //       this.props.updateLocation(coordinates);
-      //     })
-      //     .catch(error => alert("Please enter a valid postcode."));
-      // } catch (error) {
-      //   alert("Please enter a valid postcode.");
-      // }
-    };
-
-    
-    results.forEach(postcode => {
-      getCoordinates(postcode)
-    })
-
     return results;
   };
-
-
 }
 
 module.exports = Places;

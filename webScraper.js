@@ -99,6 +99,35 @@ const getEmailAddresses = async links => {
   return emailAddresses;
 };
 
+// function to obtain accurate address using business name and postcode
+
+const getAddress = async (domain, postcode) => {
+  const formattedDomain = domain.split(".")[0];
+
+  const { data } = await axios.get(
+    `https://maps.googleapis.com/maps/api/geocode/json?address=${formattedDomain}+${postcode}&key=AIzaSyA0NPRN93V8yRyOeg4IPwPuy-qQAXDBf2Q`
+  );
+
+  const { formatted_address } = data.results[0];
+
+  return formatted_address;
+};
+
+// function for if the places plugin returns multiple postcodes (doesn't seem to make too much difference with the google api, as this will often return the correct address based on the business name, ignoring the postcode, but thought it would be good for the sake of thoroughness)
+
+const getAddresses = async (domain, postcodes) => {
+  let addresses = [];
+
+  postcodes.forEach(postcode => {
+    addresses.push(getAddress(domain, postcode));
+  });
+
+  if (addresses.length === postcodes.length) {
+    const allAddresses = Promise.all(addresses);
+    return allAddresses;
+  }
+};
+
 // main function for extracting, manipulating and returning relevant data
 
 const getData = async domain => {
@@ -114,9 +143,16 @@ const getData = async domain => {
 
   const emailAddresses = await getEmailAddresses(hyperlinks);
 
-  const places = await knwlInstance.get("places");
+  const postcode = await knwlInstance.get("places");
 
-  console.log(telephoneNumbers);
+  let address;
+
+  if (postcode.length === 1) {
+    address = await getAddress(domain, postcode[0]);
+  } else {
+    address = await getAddresses(domain, postcode);
+    addresses = [...new Set(address)];
+  }
 };
 
 if (process.argv[2] !== null) {
