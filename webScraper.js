@@ -3,13 +3,12 @@ const axios = require("axios");
 var Knwl = require("knwl.js");
 var knwlInstance = new Knwl("english");
 
-let domain;
-let inputEmail = process.argv[2];
+knwlInstance.register("phones", require("./utils/phones"));
 
 // takes domain from email address provided in CL
 
 function getDomain(email) {
-  domain = email.split("@")[1];
+  const domain = email.split("@")[1];
   return domain;
 }
 
@@ -53,8 +52,12 @@ const getHyperLinks = $ => {
 
 // function for extracting all telephone numbers from web page
 
-const getTelephoneNumbers = (body, links) => {
+const getTelephoneNumbers = async links => {
   const telephoneNumbers = [];
+
+  const nums = await knwlInstance.get("phones");
+
+  console.log(nums);
 
   links.forEach(link => {
     if (link && /tel:/.test(link)) {
@@ -73,7 +76,7 @@ const getTelephoneNumbers = (body, links) => {
 
 // function for extracting all email addresses from web page
 
-const getEmailAddresses = async (body, links) => {
+const getEmailAddresses = async links => {
   const emailAddresses = [];
 
   const emails = await knwlInstance.get("emails");
@@ -99,44 +102,31 @@ const getEmailAddresses = async (body, links) => {
 
 // main function for extracting, manipulating and returning relevant data
 
-const getData = async () => {
+const getData = async domain => {
   const body = await urlRequest(domain);
-
-  knwlInstance.init(body);
 
   const $ = await convertToCheerio(body);
 
+  knwlInstance.init($.text());
+
   const hyperlinks = await getHyperLinks($);
 
-  const telephoneNumbers = await getTelephoneNumbers(body, hyperlinks);
+  const telephoneNumbers = await getTelephoneNumbers(hyperlinks);
 
-  const emailAddresses = await getEmailAddresses(body, hyperlinks);
+  const emailAddresses = await getEmailAddresses(hyperlinks);
 
-  console.log(emailAddresses);
+  console.log(telephoneNumbers, emailAddresses)
 };
 
 if (process.argv[2] !== null) {
-  domain = getDomain(inputEmail);
+  const inputEmail = process.argv[2];
 
-  getData();
+  const domain = getDomain(inputEmail);
+
+  getData(domain);
 } else {
   console.log("Please enter a valid email address");
 
   process.exit();
 }
 
-//   knwlInstance.init(html);
-//   console.log(knwlInstance.words.get('linkWordsCasesensitive'));
-//   const $ = cheerio.load(html, {
-//     normalizeWhitespace: true,
-//     xmlMode: true,
-//     decodeEntities: true,
-//     withDomLvl1: true,
-// });
-//   knwlInstance.init($.html());
-//   console.log($.html())
-//   const emails = knwlInstance.get("phones");
-//   console.log(emails);
-// }).catch(err => {
-//     console.log(err)
-// })
