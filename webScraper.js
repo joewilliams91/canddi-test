@@ -51,6 +51,19 @@ const getHyperLinks = $ => {
   return hyperlinks;
 };
 
+const getLinks = links => {
+  let extLinks = [];
+  links.forEach(link => {
+    if (link && /^https:/.test(link)) {
+      if (!extLinks.includes(link)) {
+        extLinks.push(link);
+      }
+    }
+  });
+
+  return extLinks;
+};
+
 // function for extracting all telephone numbers from web page
 
 const getTelephoneNumbers = async links => {
@@ -102,10 +115,8 @@ const getEmailAddresses = async links => {
 // function to obtain accurate address using business name and postcode
 
 const getAddress = async (domain, postcode) => {
-  const formattedDomain = domain.split(".")[0];
-
   const { data } = await axios.get(
-    `https://maps.googleapis.com/maps/api/geocode/json?address=${formattedDomain}+${postcode}&key=AIzaSyA0NPRN93V8yRyOeg4IPwPuy-qQAXDBf2Q`
+    `https://maps.googleapis.com/maps/api/geocode/json?address=${domain}+${postcode}&key=AIzaSyA0NPRN93V8yRyOeg4IPwPuy-qQAXDBf2Q`
   );
 
   const { formatted_address } = data.results[0];
@@ -135,6 +146,8 @@ const getData = async domain => {
 
   const $ = await convertToCheerio(body);
 
+  const name = domain.split(".")[0].replace(/^\w/, x => x.toUpperCase());
+
   knwlInstance.init($.text());
 
   const hyperlinks = await getHyperLinks($);
@@ -143,16 +156,29 @@ const getData = async domain => {
 
   const emailAddresses = await getEmailAddresses(hyperlinks);
 
+  const links = await getLinks(hyperlinks);
+
   const postcode = await knwlInstance.get("places");
 
   let address;
 
   if (postcode.length === 1) {
-    address = await getAddress(domain, postcode[0]);
+    address = await getAddress(name, postcode[0]);
   } else {
-    address = await getAddresses(domain, postcode);
+    address = await getAddresses(name, postcode);
     addresses = [...new Set(address)];
   }
+
+  const output = {
+    name,
+    url: createURL(domain),
+    emailAddresses,
+    telephoneNumbers,
+    address,
+    links
+  };
+
+  console.log(output);
 };
 
 if (process.argv[2] !== null) {

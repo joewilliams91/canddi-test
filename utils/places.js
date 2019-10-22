@@ -11,9 +11,9 @@ function Places(knwlInstance) {
     let results = [];
 
     for (let i = 0; i < words.length; i++) {
-      const firstPostcodeRegExp = /[a-z]{1,2}\d{1}/g;
+      const firstPostcodeRegExp = /[a-z]{1,2}\d{1}\w{0,1}/g;
       const secondPostcodeRegExp = /\d{1}[a-z]{2}/g;
-      const fullPostcodeRegExp = /([a-z]{1,2}\d{1} *\d{1}[a-z]{2})$/g;
+      const fullPostcodeRegExp = /([a-z]{1,2}\d{1}\w{0,1} *\d{1}[a-z]{2})$/g;
       if (fullPostcodeRegExp.test(words[i])) {
         const newPostcode = words[i].replace(/\s/g, "");
         if (!results.includes(newPostcode)) {
@@ -24,7 +24,7 @@ function Places(knwlInstance) {
         secondPostcodeRegExp.test(words[i + 1])
       ) {
         const newPostcode =
-          /[a-z]{1,2}\d{1}/.exec(words[i]) + /\d{1}[a-z]{2}/.exec(words[i + 1]);
+          /[a-z]{1,2}\d{1}\w{0,1}/.exec(words[i]) + /\d{1}[a-z]{2}/.exec(words[i + 1]);
         if (!results.includes(newPostcode)) {
           results.push(newPostcode);
         }
