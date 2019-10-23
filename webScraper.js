@@ -80,6 +80,11 @@ const getTelephoneNumbers = async links => {
       let newLink = link.split("tel:")[1];
       newLink = newLink.replace(/\s/g, "");
       newLink = newLink.replace(/^0/g, "+44");
+      newLink = newLink.replace(/[-)(]/g, "");
+
+      if(/^(\+44)0(\d+)$/g.test(newLink)){
+        newLink = newLink.replace(/^(\+44)0(\d+)$/g, `$1$2`)
+      }
 
       if (!telephoneNumbers.includes(newLink)) {
         telephoneNumbers.push(newLink);
@@ -143,15 +148,13 @@ const getAddresses = async (domain, postcodes) => {
   }
 };
 
-
 // still work in progress; neeed to find an online API containing all first names, with which to check any words which are capitalized. I would check by looping through the words variable, and push any positive hits (along with the words[i + 1]) and push into an array of names.
 
 const getPeople = () => {
-
   const words = knwlInstance.words.get("linkWordsCasesensitive");
 
-  console.log(words.join(" ").replace(/([a-zA-Z])([A-Z])(?=[a-z])/g, `$1 $2`))
-}
+  console.log(words.join(" ").replace(/([a-zA-Z])([A-Z])(?=[a-z])/g, `$1 $2`));
+};
 
 // main function for extracting, manipulating and returning relevant data
 
