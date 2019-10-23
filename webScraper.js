@@ -28,6 +28,8 @@ const urlRequest = async domain => {
   return data;
 };
 
+// create cheerio parsed body with which to generate knwl instance
+
 const convertToCheerio = async body => {
   const $ = await cheerio.load(body, {
     normalizeWhitespace: true,
@@ -50,6 +52,8 @@ const getHyperLinks = $ => {
 
   return hyperlinks;
 };
+
+// function with which to extract any links to potentially relevant web addresses
 
 const getLinks = links => {
   let extLinks = [];
@@ -124,7 +128,7 @@ const getAddress = async (domain, postcode) => {
   return formatted_address;
 };
 
-// function for if the places plugin returns multiple postcodes (doesn't seem to make too much difference with the google api, as this will often return the correct address based on the business name, ignoring the postcode, but thought it would be good for the sake of thoroughness)
+// function for if the places plugin returns multiple postcodes (doesn't seem to make too much difference with the google api, as this will often return the correct address based on the business name alone, ignoring the postcode, but I thought it would be good for the sake of thoroughness)
 
 const getAddresses = async (domain, postcodes) => {
   let addresses = [];
@@ -139,6 +143,16 @@ const getAddresses = async (domain, postcodes) => {
   }
 };
 
+
+// still work in progress; neeed to find an online API containing all first names, with which to check any words which are capitalized. I would check by looping through the words variable, and push any positive hits (along with the words[i + 1]) and push into an array of names.
+
+const getPeople = () => {
+
+  const words = knwlInstance.words.get("linkWordsCasesensitive");
+
+  console.log(words.join(" ").replace(/([a-zA-Z])([A-Z])(?=[a-z])/g, `$1 $2`))
+}
+
 // main function for extracting, manipulating and returning relevant data
 
 const getData = async domain => {
@@ -146,11 +160,15 @@ const getData = async domain => {
 
   const $ = await convertToCheerio(body);
 
-  const name = domain.split(".")[0].replace(/^\w/, x => x.toUpperCase());
+  const text = $.text();
 
-  knwlInstance.init($.text());
+  knwlInstance.init(text);
 
   const hyperlinks = await getHyperLinks($);
+
+  const postcode = await knwlInstance.get("places");
+
+  const name = domain.split(".")[0].replace(/^\w/, x => x.toUpperCase());
 
   const telephoneNumbers = await getTelephoneNumbers(hyperlinks);
 
@@ -158,16 +176,16 @@ const getData = async domain => {
 
   const links = await getLinks(hyperlinks);
 
-  const postcode = await knwlInstance.get("places");
-
   let address;
 
   if (postcode.length === 1) {
     address = await getAddress(name, postcode[0]);
   } else {
-    address = await getAddresses(name, postcode);
-    addresses = [...new Set(address)];
+    const addresses = await getAddresses(name, postcode);
+    address = [...new Set(addresses)];
   }
+
+  // const people = getPeople();
 
   const output = {
     name,
