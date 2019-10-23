@@ -41,7 +41,7 @@ const convertToCheerio = async body => {
   return $;
 };
 
-// function for pulling out all anchor tags, from which phone numbers/email addresses can be extracted
+// function for pulling out all anchor tags with a "href" attrib, from which phone numbers/email addresses may be extracted
 
 const getHyperLinks = $ => {
   let hyperlinks = [];
@@ -73,17 +73,29 @@ const getLinks = links => {
 const getTelephoneNumbers = async links => {
   let telephoneNumbers = [];
 
+  // returns results of the "phones" plugin, assigning the array to the above empty array
+
   telephoneNumbers = await knwlInstance.get("phones");
+
+  // looks through all anchor tags on the webpage, checking for any containing "tel:", and pushing any relevant, formatted results to the above array;
 
   links.forEach(link => {
     if (link && /tel:/.test(link)) {
       let newLink = link.split("tel:")[1];
+
+      // removes any spaces
       newLink = newLink.replace(/\s/g, "");
+
+      // if string begins with 0, replaces with +44 (assuming UK numbers for now)
       newLink = newLink.replace(/^0/g, "+44");
+
+      // removes any punctuation often included to telephone numbers, which might lead to duplication with the results from the "phones" plugin;
       newLink = newLink.replace(/[-)(]/g, "");
 
-      if(/^(\+44)0(\d+)$/g.test(newLink)){
-        newLink = newLink.replace(/^(\+44)0(\d+)$/g, `$1$2`)
+      // removes any 0s following the +44 area code, as per the formatting on some websites, to prevent further duplication
+
+      if (/^(\+44)0(\d+)$/g.test(newLink)) {
+        newLink = newLink.replace(/^(\+44)0(\d+)$/g, `$1$2`);
       }
 
       if (!telephoneNumbers.includes(newLink)) {
@@ -100,6 +112,8 @@ const getTelephoneNumbers = async links => {
 const getEmailAddresses = async links => {
   const emailAddresses = [];
 
+  // gets emails from the "emails" plugin, and adds them to the above array if they are not already in there
+
   const emails = await knwlInstance.get("emails");
 
   emails.forEach(email => {
@@ -107,6 +121,8 @@ const getEmailAddresses = async links => {
       emailAddresses.push(email.address);
     }
   });
+
+  // takes all anchor tags which contain a "mailto:" reference, pushing these into the above array, as long as they are not already there
 
   links.forEach(link => {
     if (link && /mailto:/.test(link)) {
@@ -148,7 +164,7 @@ const getAddresses = async (domain, postcodes) => {
   }
 };
 
-// still work in progress; neeed to find an online API containing all first names, with which to check any words which are capitalized. I would check by looping through the words variable, and push any positive hits (along with the words[i + 1]) and push into an array of names.
+// below still work in progress; need to find an online API containing all first names, with which to check any words which are capitalized. I would check by looping through the words variable, and push any positive hits (along with the words[i + 1]) and push into an array of names.
 
 const getPeople = () => {
   const words = knwlInstance.words.get("linkWordsCasesensitive");
@@ -187,8 +203,6 @@ const getData = async domain => {
     const addresses = await getAddresses(name, postcode);
     address = [...new Set(addresses)];
   }
-
-  // const people = getPeople();
 
   const output = {
     name,
