@@ -1,14 +1,16 @@
 const cheerio = require("cheerio");
 const axios = require("axios");
-var Knwl = require("knwl.js");
-var knwlInstance = new Knwl("english");
+const Knwl = require("knwl.js");
+const knwlInstance = new Knwl("english");
+
+const {API_KEY} = require('./.env');
 
 knwlInstance.register("phones", require("./utils/phones"));
 knwlInstance.register("places", require("./utils/places"));
 
 // takes domain from email address provided in CL
 
-function getDomain(email) {
+const getDomain = (email) => {
   const domain = email.split("@")[1];
   return domain;
 }
@@ -125,7 +127,9 @@ const getEmailAddresses = async links => {
   // takes all anchor tags which contain a "mailto:" reference, pushing these into the above array, as long as they are not already there
 
   links.forEach(link => {
+
     if (link && /mailto:/.test(link)) {
+      
       let newLink = link.split("mailto:")[1];
 
       if (!emailAddresses.includes(newLink)) {
@@ -141,7 +145,7 @@ const getEmailAddresses = async links => {
 
 const getAddress = async (domain, postcode) => {
   const { data } = await axios.get(
-    `https://maps.googleapis.com/maps/api/geocode/json?address=${domain}+${postcode}&key=AIzaSyA0NPRN93V8yRyOeg4IPwPuy-qQAXDBf2Q`
+    `https://maps.googleapis.com/maps/api/geocode/json?address=${domain}+${postcode}&key=${API_KEY}`
   );
 
   const { formatted_address } = data.results[0];
@@ -216,7 +220,7 @@ const getData = async domain => {
   console.log(output);
 };
 
-if (process.argv[2] !== null) {
+if (!process.argv[2]) {
   const inputEmail = process.argv[2];
 
   const domain = getDomain(inputEmail);
